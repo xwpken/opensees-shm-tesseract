@@ -1,0 +1,2 @@
+numpy==2.3.5
+sectionproperties==3.10.2

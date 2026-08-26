@@ -1,0 +1,1 @@
+"""Steel-frame SHM example."""

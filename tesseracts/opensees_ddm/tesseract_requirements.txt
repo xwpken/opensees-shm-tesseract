@@ -1,0 +1,2 @@
+numpy==2.3.5
+openseespy==3.8.0.0

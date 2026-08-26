@@ -1,0 +1,10 @@
+jax[cpu]==0.11.0
+numpy==2.3.5
+openseespy==3.8.0.0
+tesseract-core[runtime]==1.11.0
+tesseract-jax==0.4.1
+matplotlib==3.10.9
+sectionproperties==3.10.2
+blackjax==1.6.2
+optax==0.2.8
+scipy==1.17.1

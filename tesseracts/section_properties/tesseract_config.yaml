@@ -1,0 +1,9 @@
+name: "section-properties"
+version: "0.1.0"
+description: "Finite-element properties of locally corroded I-sections"
+
+build_config:
+  python_version: "3.13"
+  target_platform: "native"
+  package_data:
+    - ["section_solver.py", "section_solver.py"]

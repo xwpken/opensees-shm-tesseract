@@ -1,0 +1,9 @@
+name: "opensees-ddm"
+version: "0.1.0"
+description: "Problem-independent OpenSeesPy runner with VJP assembled from native DDM sensitivities"
+
+build_config:
+  python_version: "3.13"
+  target_platform: "native"
+  package_data:
+    - ["solver.py", "solver.py"]

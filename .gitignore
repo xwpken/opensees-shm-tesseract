@@ -1,0 +1,15 @@
+.DS_Store
+__pycache__/
+*.py[cod]
+.venv/
+figs/*
+!figs/shm_frame_model.png
+!figs/shm_frame_gradient.png
+!figs/shm_frame_summary.png
+!figs/shm_bridge_inference.png
+!figs/shm_bridge_transient.gif
+!figs/shm_frame_posterior.png
+!figs/gradient_hysteresis.gif
+!figs/gradient_validation.png
+
+results/
