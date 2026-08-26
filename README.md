@@ -140,8 +140,7 @@ W = \sum_{n=1}^{N}
 \frac{F_n+F_{n-1}}{2}
 (u_n-u_{n-1}).
 ```
-
-The `section-properties` Tesseract differentiates the corrosion-to-area map, the `opensees-ddm` Tesseract uses `OpenSees` DDM for the area-to-displacement map, and `JAX` differentiates the hysteretic-work calculation. The reference gradient perturbs the original corrosion parameters and repeats the entire section and structural analyses, providing an end-to-end check of the composed pipeline.
+The reference gradient perturbs the original corrosion parameters and repeats the entire section and structural analyses, providing an end-to-end check of the composed pipeline.
 
 #### Results
 
@@ -212,7 +211,7 @@ with a standard deviation equal to 2% of the absolute response magnitude and a s
 
 The priors are $\Delta t_f\sim\mathcal U(0,12)$ mm and $\Delta t_w\sim\mathcal U(0,8)$ mm. A sigmoid transformation enforces these bounds, while `BlackJAX` fits a full-rank Gaussian in unconstrained coordinates. Starting from $2$ mm at every coordinate, the optimization uses $200$ updates, eight ELBO samples per update, an initial learning rate of $0.025$, and $10{,}000$ posterior samples.
 
-Figure 4 summarizes the optimization, parameter estimates, and response fit. The Euclidean parameter error decreases from $11.895$ mm to $1.000$ mm; the whitened clean-response RMSE falls from $12.597$ to $0.138$ noise standard deviations, and the whitened noisy-data RMSE from $12.575$ to $1.007$. All eight true losses lie inside their 95% marginal credible intervals.
+Figure 4 summarizes the optimization, parameter estimates, and response fit. The Euclidean parameter error decreases from $11.895$ mm to $1.000$ mm; the whitened clean-response RMSE falls from $12.597$ to $0.138$ noise standard deviations, and the whitened noisy-data RMSE from $12.575$ to $1.007$. All eight true parameters lie inside their 95% marginal credible intervals.
 
 <p align="center">
   <img src="figs/shm_frame_summary.png" width="100%" alt="Variational inference results">
@@ -260,20 +259,20 @@ The bridge is $36$ m long and $4$ m wide, with $87$ nodes, $233$ steel line elem
 \Delta t_w=0.8s_i,
 ```
 
-so one severity jointly controls the flange and web losses through a fixed $1{:}0.8$ ratio. For each forward evaluation, the `section-properties` Tesseract computes the damaged section properties and maps the changes in $A$, $I_y$, and $I_z$ to the registered parameters of the `opensees-ddm` Tesseract.
+For each forward evaluation, the `section-properties` Tesseract computes the damaged section properties and maps the changes in $A$, $I_y$, and $I_z$ to the registered parameters of the `opensees-ddm` Tesseract.
 
 A two-direction base pulse acts for $0.5$ s, followed by free vibration to $1.5$ s; the amplified deformation history is shown in Figure 5. Six three-axis accelerometers provide $26$ retained time samples and $18$ absolute-acceleration channels. Independent Gaussian noise uses 2% of each channel RMS with a $10^{-4}g$ floor. The true severities are $(9,10,11)$ mm and the variational mean starts from $(2,2,2)$ mm. The end-to-end gradient has a relative $L_2$ error of $5.535\times10^{-7}$ against central finite differences.
 
 <p align="center">
   <img src="figs/shm_bridge_transient.gif" width="100%" alt="Animated pedestrian bridge response under transient excitation">
-  <br><em>Figure 5. Bridge deformation under the designed transient excitation, amplified $500\times$.</em>
+  <br><em>Figure 5. Bridge deformation under the designed transient excitation.</em>
 </p>
 
 #### Inference and results
 
-The priors are $s_i\sim\mathcal U(0,12.4)$ mm. `BlackJAX` fits a full-rank Gaussian in unconstrained coordinates using $100$ updates, four ELBO samples per update, and $10{,}000$ posterior samples.
+The priors are $s_i\sim\mathcal U(0,12.4)$ mm. `BlackJAX` fits a full-rank Gaussian in unconstrained coordinates using $100$ updates, $4$ ELBO samples per update, and $10{,}000$ posterior samples.
 
-The optimization history and learned parameter dependence are shown together in Figure 6. The posterior means are $(8.805,9.882,10.896)$ mm with standard deviations $(0.285,0.222,0.169)$ mm, and all three true values lie within their 95% credible intervals. The clean-response RMSE decreases from $3.688$ to $0.067$ noise standard deviations, while the noisy-data RMSE decreases from $3.748$ to $1.019$.
+The optimization history and learned parameter dependence are shown together in Figure 6. The posterior means are $(8.805,9.882,10.896)$ mm with standard deviations $(0.285,0.222,0.169)$ mm, and all three true parameters lie within their 95% credible intervals. The clean-response RMSE decreases from $3.688$ to $0.067$ noise standard deviations, while the noisy-data RMSE decreases from $3.748$ to $1.019$.
 
 <p align="center">
   <img src="figs/shm_bridge_inference.png" width="100%" alt="Bridge full-rank variational inference results">
