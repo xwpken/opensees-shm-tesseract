@@ -10,7 +10,7 @@ This project develops an end-to-end differentiable framework for uncertainty qua
 
 Authors: [Weipeng Xu](https://github.com/xwpken), [Ziyuan Xie](https://github.com/xiezy964), [Dazhi Zhao](https://github.com/dazhizhao), [Tianju Xue](https://github.com/tianjuxue)
 
-For any questions, please contact the team at [wxuby@connect.ust.hk](mailto:wxuby@connect.ust.hk).
+For any questions, please contact the team at [wxuby@connect.ust.hk](mailto:wxuby@connect.ust.hk)
 
 ## Introduction
 
