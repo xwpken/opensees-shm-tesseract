@@ -259,8 +259,6 @@ The bridge is $36$ m long and $4$ m wide, with $87$ nodes, $233$ steel line elem
 \Delta t_w=0.8s_i,
 ```
 
-For each forward evaluation, the `section-properties` Tesseract computes the damaged section properties and maps the changes in $A$, $I_y$, and $I_z$ to the registered parameters of the `opensees-ddm` Tesseract.
-
 A two-direction base pulse acts for $0.5$ s, followed by free vibration to $1.5$ s; the amplified deformation history is shown in Figure 5. Six three-axis accelerometers provide $26$ retained time samples and $18$ absolute-acceleration channels. Independent Gaussian noise uses 2% of each channel RMS with a $10^{-4}g$ floor. The true severities are $(9,10,11)$ mm and the variational mean starts from $(2,2,2)$ mm. The end-to-end gradient has a relative $L_2$ error of $5.535\times10^{-7}$ against central finite differences.
 
 <p align="center">
