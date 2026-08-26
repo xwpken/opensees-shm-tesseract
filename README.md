@@ -19,7 +19,7 @@ For any questions, please contact the team at [wxuby@connect.ust.hk](mailto:wxub
   - [Introduction](#introduction)
   - [Modeling framework](#modeling-framework)
   - [The composition](#the-composition)
-  - [Why `Tesseract`](#why-tesseract)
+  - [Why Tesseract](#why-tesseract)
   - [Installation](#installation)
   - [Examples](#examples)
     - [Gradient validation](#gradient-validation)
@@ -127,7 +127,7 @@ damage estimates and uncertainty
 ```
 
 
-## Why `Tesseract`
+## Why Tesseract
 
 The central challenge is that the numerical stages expose different derivative capabilities and interfaces. `sectionproperties` does not provide the required derivative interface, whereas `OpenSees` computes response sensitivities through DDM. `Tesseract` gives both solvers a common forward-and-pullback contract, allowing `Tesseract-JAX` to compose them as one differentiable operation.
 
