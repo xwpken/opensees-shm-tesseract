@@ -1,6 +1,6 @@
 # Differentiable Structural Health Monitoring with Tesseract
 
-**Tesseract Hackathon 2026 · Differentiable Inference & UQ**
+**Tesseract Hackathon 2026 · Track 04 · Differentiable Inference & UQ**
 
 <p align="center">
   <img src="figs/logo.png" alt="OpenSees-SHM-Tesseract logo" width="400">
@@ -14,18 +14,26 @@ For any questions, please contact the team at [wxuby@connect.ust.hk](mailto:wxub
 
 ## Table of contents
 
-- [Introduction](#introduction)
-- [Modeling framework](#modeling-framework)
-- [The composition](#the-composition)
-- [Why Tesseract](#why-tesseract)
-- [Installation](#installation)
-- [Examples](#examples)
-  - [Gradient validation](#gradient-validation)
-  - [Static frame corrosion inference](#static-frame-corrosion-inference)
-  - [Transient bridge corrosion inference](#transient-bridge-corrosion-inference)
-- [Repository structure](#repository-structure)
-- [References](#references)
-- [License](#license)
+- [Differentiable Structural Health Monitoring with Tesseract](#differentiable-structural-health-monitoring-with-tesseract)
+  - [Table of contents](#table-of-contents)
+  - [Introduction](#introduction)
+  - [Modeling framework](#modeling-framework)
+  - [The composition](#the-composition)
+  - [Why `Tesseract`](#why-tesseract)
+  - [Installation](#installation)
+  - [Examples](#examples)
+    - [Gradient validation](#gradient-validation)
+      - [Model](#model)
+      - [Results](#results)
+    - [Static frame corrosion inference](#static-frame-corrosion-inference)
+      - [Model and observations](#model-and-observations)
+      - [Inference and results](#inference-and-results)
+    - [Transient bridge corrosion inference](#transient-bridge-corrosion-inference)
+      - [Model and observations](#model-and-observations-1)
+      - [Inference and results](#inference-and-results-1)
+  - [Repository structure](#repository-structure)
+  - [References](#references)
+  - [License](#license)
 
 ## Introduction
 
