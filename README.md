@@ -379,7 +379,7 @@ opensees-shm-tesseract/
 
 ## References
 
-<a id="ref-1"></a>[1] K. Itle and M. Ford, “Failures: School corrosion underscores documentation importance,” *The Construction Specifier*, October 5, 2023. [Article](https://www.constructionspecifier.com/failures-school-corrosion-underscores-documentation-importance/). Photographs courtesy of Wiss, Janney, Elstner Associates.
+<a id="ref-1"></a>[1] K. Itle and M. Ford, “Failures: School corrosion underscores documentation importance,” *The Construction Specifier*, October 5, 2023. [Article](https://www.constructionspecifier.com/failures-school-corrosion-underscores-documentation-importance/). 
 
 <a id="ref-2"></a>[2] R. van Leeuwen and C. Ferster, “sectionproperties: A Python package for the analysis of arbitrary cross-sections using the finite element method,” *Journal of Open Source Software*, vol. 9, no. 96, p. 6105, 2024. [doi:10.21105/joss.06105](https://doi.org/10.21105/joss.06105).
 
