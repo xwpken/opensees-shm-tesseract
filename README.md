@@ -13,7 +13,6 @@ Authors: [Weipeng Xu](https://github.com/xwpken), [Ziyuan Xie](https://github.co
 For any questions, please contact the team at [wxuby@connect.ust.hk](mailto:wxuby@connect.ust.hk)
 
 ## Table of contents
-
 - [Introduction](#introduction)
 - [Modeling framework](#modeling-framework)
 - [The composition](#the-composition)
@@ -168,7 +167,7 @@ This example validates the complete differentiable composition on a nonlinear, p
 
 #### Model
 
-The structure is a quasi-one-dimensional chain of $12$ serial truss elements. Each element uses the `OpenSees` `Steel01` material model with fixed yield stress $F_y=250~\mathrm{MPa}$, elastic modulus $E=200~\mathrm{GPa}$, and hardening ratio $b=0.02$. Its independent geometric inputs are the flange and web losses
+The structure is a quasi-one-dimensional chain of $12$ serial truss elements. Each element uses the `OpenSees` `Steel01` material model with fixed yield stress $F_y=250\;\mathrm{MPa}$, elastic modulus $E=200\;\mathrm{GPa}$, and hardening ratio $b=0.02$. Its independent geometric inputs are the flange and web losses
 
 ```math
 \boldsymbol\theta_i = [\Delta t_{f,i},\Delta t_{w,i}],
@@ -204,7 +203,7 @@ The `section-properties` Tesseract differentiates the corrosion-to-area map, the
 Figure 1 shows the yielding, unloading, and load reversal captured by the cyclic analysis. For the resulting $24$ corrosion parameters and $120$ load increments, the composed gradient agrees with full-pipeline central finite differences to a relative $L_2$ error of approximately $2.3\times10^{-10}$, with no sign mismatch. As summarized in Figure 2, the composed pullback is approximately $10\times$ faster than central differences.
 
 <p align="center">
-  <img src="figs/gradient_hysteresis.gif" width="60%" alt="Animated cyclic elastoplastic response">
+  <img src="figs/gradient_hysteresis.gif" width="50%" alt="Animated cyclic elastoplastic response">
   <br><em>Figure 1. Cyclic elastoplastic force--displacement response.</em>
 </p>
 
@@ -230,7 +229,7 @@ figs/gradient_validation.png    # gradient accuracy and timing comparison
 
 ### 2. Static frame corrosion inference
 
-This example applies the two-Tesseract composition to Bayesian estimation of localized corrosion in a two-dimensional, three-story, three-bay steel frame. Each bay is $5~\mathrm{m}$ wide, each story is $4~\mathrm{m}$ high, and every physical member is divided into four `OpenSees` `dispBeamColumn` elements.
+This example applies the two-Tesseract composition to Bayesian estimation of localized corrosion in a two-dimensional, three-story, three-bay steel frame. Each bay is $5\;\mathrm{m}$ wide, each story is $4\;\mathrm{m}$ high, and every physical member is divided into four `OpenSees` `dispBeamColumn` elements.
 
 #### Model and observations
 
@@ -266,9 +265,9 @@ with a standard deviation equal to $2\%$ of the absolute response magnitude and 
 
 #### Inference and results
 
-The priors are $\Delta t_f\sim\mathcal U(0,12~\mathrm{mm})$ and $\Delta t_w\sim\mathcal U(0,8~\mathrm{mm})$. A sigmoid transformation enforces these bounds, while `BlackJAX` fits a full-rank Gaussian in unconstrained coordinates. Starting from $2~\mathrm{mm}$ at every coordinate, the optimization uses $200$ updates, eight ELBO samples per update, an initial learning rate of $0.025$, and $10{,}000$ posterior samples.
+The priors are $\Delta t_f\sim\mathcal U(0,12\;\mathrm{mm})$ and $\Delta t_w\sim\mathcal U(0,8\;\mathrm{mm})$. A sigmoid transformation enforces these bounds, while `BlackJAX` fits a full-rank Gaussian in unconstrained coordinates. Starting from $2\;\mathrm{mm}$ at every coordinate, the optimization uses $200$ updates, eight ELBO samples per update, an initial learning rate of $0.025$, and $10{,}000$ posterior samples.
 
-Figure 4 summarizes the optimization, parameter estimates, and response fit. The Euclidean parameter error decreases from $11.895~\mathrm{mm}$ to $1.000~\mathrm{mm}$; the whitened clean-response RMSE falls from $12.597$ to $0.138$ noise standard deviations, and the whitened noisy-data RMSE from $12.575$ to $1.007$. All eight true losses lie inside their $95\%$ marginal credible intervals.
+Figure 4 summarizes the optimization, parameter estimates, and response fit. The Euclidean parameter error decreases from $11.895\;\mathrm{mm}$ to $1.000\;\mathrm{mm}$; the whitened clean-response RMSE falls from $12.597$ to $0.138$ noise standard deviations, and the whitened noisy-data RMSE from $12.575$ to $1.007$. All eight true losses lie inside their $95\%$ marginal credible intervals.
 
 <p align="center">
   <img src="figs/shm_frame_summary.png" width="100%" alt="Variational inference results">
@@ -278,6 +277,9 @@ Figure 4 summarizes the optimization, parameter estimates, and response fit. The
 Reproduce this example:
 
 ```bash
+# Generate the frame and corroded-section visualization in Figure 3.
+python examples/shm_frame/visualize.py
+
 # Validate the end-to-end Tesseract/OpenSees gradient.
 python examples/shm_frame/validate_gradient.py
 
@@ -305,7 +307,7 @@ This example estimates corrosion severity at three known candidate members of a 
 
 #### Model and observations
 
-The bridge is $36~\mathrm{m}$ long and $4~\mathrm{m}$ wide, with $87$ nodes, $233$ steel line elements, and $48$ deck shell elements. Three separated chord members are assigned corrosion parameters $\boldsymbol s=[s_1,s_2,s_3]$. At each site, the prescribed local damage shape uses
+The bridge is $36\;\mathrm{m}$ long and $4\;\mathrm{m}$ wide, with $87$ nodes, $233$ steel line elements, and $48$ deck shell elements. Three separated chord members are assigned corrosion parameters $\boldsymbol s=[s_1,s_2,s_3]$. At each site, the prescribed local damage shape uses
 
 ```math
 \Delta t_f=s_i,
@@ -315,7 +317,7 @@ The bridge is $36~\mathrm{m}$ long and $4~\mathrm{m}$ wide, with $87$ nodes, $23
 
 so flange and web losses are controlled by one severity rather than inferred independently. For each forward evaluation, the `section-properties` Tesseract computes the damaged section properties and maps the changes in $A$, $I_y$, and $I_z$ to the registered parameters of the `opensees-ddm` Tesseract.
 
-A two-direction base pulse acts for $0.5~\mathrm{s}$, followed by free vibration to $1.5~\mathrm{s}$; the amplified deformation history is shown in Figure 5. Six three-axis accelerometers provide $26$ retained time samples and $18$ absolute-acceleration channels. Independent Gaussian noise uses $2\%$ of each channel RMS with a $10^{-4}g$ floor. The true severities are $(9,10,11)~\mathrm{mm}$ and the variational mean starts from $(2,2,2)~\mathrm{mm}$. The end-to-end gradient has a relative $L_2$ error of $5.535\times10^{-7}$ against central finite differences.
+A two-direction base pulse acts for $0.5\;\mathrm{s}$, followed by free vibration to $1.5\;\mathrm{s}$; the amplified deformation history is shown in Figure 5. Six three-axis accelerometers provide $26$ retained time samples and $18$ absolute-acceleration channels. Independent Gaussian noise uses $2\%$ of each channel RMS with a $10^{-4}g$ floor. The true severities are $(9,10,11)\;\mathrm{mm}$ and the variational mean starts from $(2,2,2)\;\mathrm{mm}$. The end-to-end gradient has a relative $L_2$ error of $5.535\times10^{-7}$ against central finite differences.
 
 <p align="center">
   <img src="figs/shm_bridge_transient.gif" width="100%" alt="Animated pedestrian bridge response under transient excitation">
@@ -324,9 +326,9 @@ A two-direction base pulse acts for $0.5~\mathrm{s}$, followed by free vibration
 
 #### Inference and results
 
-The priors are $s_i\sim\mathcal U(0,12.4~\mathrm{mm})$. `BlackJAX` fits a full-rank Gaussian in unconstrained coordinates using $100$ updates, four ELBO samples per update, and $10{,}000$ posterior samples.
+The priors are $s_i\sim\mathcal U(0,12.4\;\mathrm{mm})$. `BlackJAX` fits a full-rank Gaussian in unconstrained coordinates using $100$ updates, four ELBO samples per update, and $10{,}000$ posterior samples.
 
-The optimization history and learned parameter dependence are shown together in Figure 6. The posterior means are $(8.805,9.882,10.896)~\mathrm{mm}$ with standard deviations $(0.285,0.222,0.169)~\mathrm{mm}$, and all three true values lie within their $95\%$ credible intervals. The clean-response RMSE decreases from $3.688$ to $0.067$ noise standard deviations, while the noisy-data RMSE decreases from $3.748$ to $1.019$.
+The optimization history and learned parameter dependence are shown together in Figure 6. The posterior means are $(8.805,9.882,10.896)\;\mathrm{mm}$ with standard deviations $(0.285,0.222,0.169)\;\mathrm{mm}$, and all three true values lie within their $95\%$ credible intervals. The clean-response RMSE decreases from $3.688$ to $0.067$ noise standard deviations, while the noisy-data RMSE decreases from $3.748$ to $1.019$.
 
 <p align="center">
   <img src="figs/shm_bridge_inference.png" width="100%" alt="Bridge full-rank variational inference results">
@@ -376,14 +378,16 @@ opensees-shm-tesseract/
 │   │   └── validate_gradient.py
 │   ├── shm_frame/
 │   │   ├── model.py
-│   │   ├── plots.py
+│   │   ├── experiment.py
 │   │   ├── infer.py
+│   │   ├── plots.py
 │   │   ├── validate_gradient.py
 │   │   └── visualize.py
 │   └── shm_bridge/
 │       ├── model.py
-│       ├── transient.py
+│       ├── experiment.py
 │       ├── infer.py
+│       ├── plots.py
 │       ├── validate_gradient.py
 │       └── visualize.py
 ├── utils/
@@ -408,7 +412,7 @@ opensees-shm-tesseract/
 
 <a id="ref-5"></a>[5] D. Häfner and A. Lavin, “Tesseract Core: Universal, autodiff-native software components for Simulation Intelligence,” *Journal of Open Source Software*, vol. 10, no. 111, p. 8385, 2025. [doi:10.21105/joss.08385](https://doi.org/10.21105/joss.08385).
 
-<a id="ref-6"></a>[6] R. Frostig, M. Johnson, and C. Leary, “JAX: Compiling machine learning programs via high-level tracing,” *SysML Conference*, 2018. [Publication](https://research.google/pubs/compiling-machine-learning-programs-via-high-level-tracing/).
+<a id="ref-6"></a>[6] R. Frostig, M. Johnson, and C. Leary, “Compiling machine learning programs via high-level tracing,” *SysML Conference*, 2018. [Publication](https://research.google/pubs/compiling-machine-learning-programs-via-high-level-tracing/).
 
 <a id="ref-7"></a>[7] A. Cabezas et al., “BlackJAX: Composable Bayesian inference in JAX,” arXiv:2402.10797, 2024. [arXiv:2402.10797](https://arxiv.org/abs/2402.10797).
 

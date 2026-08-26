@@ -31,7 +31,7 @@ def plot_inference_summary(
     mean = samples.mean(axis=0)
     lower, upper = np.quantile(samples, [0.025, 0.975], axis=0)
 
-    figure, axes = plt.subplots(1, 3, figsize=(24.0, 7.2))
+    figure, axes = plt.subplots(1, 3, figsize=(21.5, 7.0))
     steps = np.arange(len(vi_loss))
     window = min(20, max(1, len(vi_loss) // 5))
     if len(vi_loss) >= window:
@@ -60,7 +60,7 @@ def plot_inference_summary(
         ylim=(0.0, None),
     )
     axes[0].grid(True, alpha=0.2)
-    axes[0].legend(fontsize=20)
+    axes[0].legend(fontsize=23)
 
     positions = np.arange(truth.size)
     axes[1].errorbar(
@@ -96,13 +96,13 @@ def plot_inference_summary(
     axes[1].legend(
         loc="upper center",
         ncol=3,
-        fontsize=20,
+        fontsize=23,
         handlelength=1.2,
         handletextpad=0.45,
         columnspacing=0.9,
         borderpad=0.35,
     )
-    axes[1].tick_params(axis="x", labelsize=20)
+    axes[1].tick_params(axis="x", labelsize=23)
 
     x = np.arange(2)
     width = 0.24
@@ -128,21 +128,21 @@ def plot_inference_summary(
         ylim=(0.0, None),
     )
     axes[2].grid(True, axis="y", alpha=0.2)
-    axes[2].legend(fontsize=20)
+    axes[2].legend(fontsize=23)
 
     for axis in axes:
-        axis.title.set_fontsize(28)
-        axis.xaxis.label.set_fontsize(26)
-        axis.yaxis.label.set_fontsize(26)
+        axis.title.set_fontsize(32)
+        axis.xaxis.label.set_fontsize(30)
+        axis.yaxis.label.set_fontsize(30)
         axis.yaxis.set_major_locator(MaxNLocator(nbins=5, min_n_ticks=3))
         axis.tick_params(
-            axis="both", which="major", labelsize=22, width=1.1, length=5
+            axis="both", which="major", labelsize=27, width=1.2, length=5
         )
 
     # Keep the two-line parameter labels readable without crowding.
-    axes[1].tick_params(axis="x", labelsize=19)
+    axes[1].tick_params(axis="x", labelsize=22)
 
-    figure.tight_layout(pad=1.0, w_pad=2.4)
+    figure.tight_layout(pad=0.9, w_pad=2.0)
     path = Path(output)
     path.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(path, dpi=200, bbox_inches="tight")

@@ -16,14 +16,12 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT))
 
-from examples.shm_frame.model import (
+from examples.shm_frame.experiment import (
     DAMAGE_SITES,
-    MEMBERS,
-    N_SUBELEMENTS,
-    NODE_COORDINATES,
     make_section_spec,
     true_corrosion,
 )
+from examples.shm_frame.model import MEMBERS, N_SUBELEMENTS, NODE_COORDINATES
 from utils.plot_style import set_plot_style
 
 set_plot_style(27)

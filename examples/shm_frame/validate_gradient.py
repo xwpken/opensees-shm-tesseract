@@ -18,7 +18,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT))
 
-from examples.shm_frame.model import (
+from examples.shm_frame.experiment import (
     DAMAGE_LABELS,
     LOAD_CASES,
     OBSERVATION_LABELS,

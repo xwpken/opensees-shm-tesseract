@@ -18,8 +18,7 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT))
 
-from examples.shm_bridge.model import make_bridge_mesh
-from examples.shm_bridge.transient import (
+from examples.shm_bridge.experiment import (
     DAMAGE_LABELS,
     corrosion_from_severity,
     initial_severity,
@@ -29,6 +28,7 @@ from examples.shm_bridge.transient import (
     section_properties_to_parameters,
     true_severity,
 )
+from examples.shm_bridge.model import make_bridge_mesh
 from utils.gradient_check import compute_gradient_metrics
 
 SECTION_API = ROOT / "tesseracts" / "section_properties" / "tesseract_api.py"

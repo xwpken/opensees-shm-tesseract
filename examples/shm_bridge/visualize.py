@@ -16,16 +16,16 @@ HERE = Path(__file__).resolve().parent
 ROOT = HERE.parents[1]
 sys.path.insert(0, str(ROOT))
 
-from examples.shm_bridge.model import (
-    BridgeMesh,
-    make_bridge_mesh,
-)
-from examples.shm_bridge.transient import (
+from examples.shm_bridge.experiment import (
     corrosion_from_severity,
     make_section_spec,
     make_transient_program,
     section_properties_to_parameters,
     true_severity,
+)
+from examples.shm_bridge.model import (
+    BridgeMesh,
+    make_bridge_mesh,
 )
 
 plt.rcParams.update({
