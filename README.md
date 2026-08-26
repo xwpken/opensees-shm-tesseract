@@ -6,7 +6,7 @@
   <img src="figs/logo.png" alt="OpenSees-SHM-Tesseract logo" width="400">
 </p>
 
-This project develops an end-to-end differentiable framework for uncertainty quantification, aimed at structural health monitoring (SHM) of steel structures with localized corrosion. [Tesseract](https://docs.pasteurlabs.ai/projects/tesseract-core/latest/) connects cross-section analysis in [sectionproperties](https://sectionproperties.readthedocs.io/en/stable/) with structural simulation in [OpenSees](https://opensees.github.io/OpenSeesDocumentation/), enabling [JAX](https://docs.jax.dev/en/latest/)-based gradient computation and Bayesian inference across the complete model.
+This project develops an end-to-end differentiable framework for uncertainty quantification, aimed at structural health monitoring (SHM) for localized corrosion. [Tesseract](https://docs.pasteurlabs.ai/projects/tesseract-core/latest/) connects cross-section analysis in [sectionproperties](https://sectionproperties.readthedocs.io/en/stable/) with structural simulation in [OpenSees](https://opensees.github.io/OpenSeesDocumentation/), enabling [JAX](https://docs.jax.dev/en/latest/)-based gradient computation and Bayesian inference across the complete workflow. 
 
 Authors: [Weipeng Xu](https://github.com/xwpken), [Ziyuan Xie](https://github.com/xiezy964), [Dazhi Zhao](https://github.com/dazhizhao), [Tianju Xue](https://github.com/tianjuxue)
 
@@ -14,7 +14,7 @@ For any questions, please contact the team at [wxuby@connect.ust.hk](mailto:wxub
 
 ## Table of contents
 - [Introduction](#introduction)
-- [Modeling framework](#modeling-framework-and-composition)
+- [Modeling framework](#modeling-framework)
 - [Why Tesseract](#why-tesseract)
 - [Installation](#installation)
 - [Examples](#examples)
@@ -27,7 +27,7 @@ For any questions, please contact the team at [wxuby@connect.ust.hk](mailto:wxub
 
 ## Introduction
 
-Corrosion is a major source of stiffness degradation in steel structures. The practical importance of detecting localized corrosion is illustrated by the documented school-building investigation [[1]](#ref-1). Since affected regions are often difficult to inspect directly, structural health monitoring (SHM) commonly relies on changes in measured displacements, strains, or vibration responses to infer the underlying damage. This leads to an inverse problem: given noisy structural measurements and a mechanical model, estimate the severity of deterioration at candidate regions and quantify the remaining uncertainty.
+Corrosion is a major source of stiffness degradation in steel structures. The practical importance of detecting localized corrosion is illustrated by the case study of a school-building investigation [[1]](#ref-1). Since affected regions are often difficult to inspect directly, structural health monitoring (SHM) commonly relies on changes in measured displacements, strains, or vibration responses to infer the underlying damage. This leads to an inverse problem: given noisy structural measurements and a mechanical model, estimate the severity of deterioration at candidate regions and quantify the remaining uncertainty.
 
 
 For local corrosion, the parameter-to-observation relationship naturally spans two modeling scales. A local loss of flange or web thickness changes the cross-sectional geometry of a member. The modified geometry changes its area and bending inertia, which changes the stiffness distribution of the assembled structure and ultimately its measured response. The forward map is
@@ -46,48 +46,50 @@ where $\boldsymbol\theta$ denotes corrosion parameters, $\boldsymbol p$ denotes 
 
 ## Modeling framework
 
-The forward model links local corrosion to structural measurements through three stages. At the section scale, `sectionproperties` [[2]](#ref-2) constructs and meshes each damaged cross-section and evaluates its area and second moments of area. At the structural scale, [OpenSeesPy](https://openseespydoc.readthedocs.io/) [[4]](#ref-4) assigns these properties to selected elements and computes static or transient responses; its Direct Differentiation Method (DDM) supplies response sensitivities with respect to the registered element properties. A JAX layer then converts the response history into the quantities used by the objective or likelihood.
+The above parameter-to-observation map is implemented using two established engineering solvers. First, `sectionproperties` [[2]](#ref-2) is adopted to evaluate the section properties of corroded cross-sections. The corroded geometry is constructed from the flange and web losses, meshed with finite elements, and evaluated using the finite-element method. Then the classical structural solver `OpenSees` [[3]](#ref-3), accessed through its Python interface `OpenSeesPy` [[4]](#ref-4), is used to compute the static / transient response of the assembled structure with the corroded section properties. Finally, the objective of interest can be evaluated from the response history and observations through a probabilistic layer implemented in `JAX` [[5]](#ref-5). 
 
-The section and structural analyses are packaged as two Tesseracts [[5]](#ref-5). Downward arrows show the forward calculation, while upward arrows show backward propagation through the two components.
+To enable gradient-based inference, the two solvers are packaged as `Tesseracts` [[6]](#ref-6). The `section-properties` Tesseract approximates the derivatives of the section properties with respect to the corrosion parameters using finite differences, and contracts them with the incoming property cotangent to return the VJP. Similarly, the `opensees-ddm` Tesseract uses the native Direct Differentiation Method (DDM) of `OpenSees` to compute response sensitivities with respect to section properties, and contracts them with the incoming response cotangent to return the VJP. [Tesseract-JAX](https://docs.pasteurlabs.ai/projects/tesseract-jax/latest/) exposes the complete workflow as a differentiable JAX function, allowing the gradient of the objective with respect to the corrosion parameters to be propagated through the entire pipeline. The resulting gradient can be used by [BlackJAX](https://blackjax-devs.github.io/blackjax/) [[7]](#ref-7) to perform variational inference (VI).
+
+The following diagram summarizes the forward evaluation (downward) and backward propagation (upward) through the complete workflow. 
 
 ```text
                       forward ↓            ↑ gradient
 
-                          corrosion parameters θ
+         corrosion parameters θ            ∂L/∂θ
                               │            ▲
-                              │            │ ∂L/∂θ
+                              │            │ 
                               ▼            │
-            ┌──────────────────────────────────────────────┐
-            │ Tesseract A — section analysis               │
-            │ sectionproperties: geometry + mesh + FEM     │
-            └──────────────────────────────────────────────┘
+          ┌────────────────────────────────────────────────────────┐
+          │ Tesseract A                                            │
+          │ sectionproperties: section analysis + FD sensitivity   │
+          └────────────────────────────────────────────────────────┘
                               │            ▲
          section properties p │            │ property cotangent
-                              ▼            │ finite-difference VJP
-            ┌──────────────────────────────────────────────┐
-            │ Tesseract B — structural analysis            │
-            │ OpenSees: static / transient analysis        │
-            └──────────────────────────────────────────────┘
+                              ▼            │ 
+          ┌─────────────────────────────────────────────────────────┐
+          │ Tesseract B                                             │
+          │ OpenSees: static / transient analysis + DDM sensitivity │
+          └─────────────────────────────────────────────────────────┘
                               │            ▲
            response history r │            │ response cotangent
-                              ▼            │ DDM + contraction
-            ┌──────────────────────────────────────────────┐
-            │ JAX observation and statistical layer        │◀── observed data
-            │ response processing + log density            │
-            └──────────────────────────────────────────────┘
+                              ▼            │  
+              ┌──────────────────────────────────────────────┐
+              │          JAX probabilistic layer             │◀── observed data
+              └──────────────────────────────────────────────┘
                               │            ▲
                               │            │
                               ▼            │
-                             objective / ELBO
+                                objective L
 ```
 
-During backward propagation, JAX differentiates the observation and statistical calculations to obtain the response cotangent. The `opensees-ddm` Tesseract contracts this cotangent with native DDM sensitivities, and the `section-properties` Tesseract evaluates its finite-difference VJP using the resulting property cotangent.
 
 ## Why Tesseract
 
-The workflow crosses two solver boundaries with different execution and differentiation mechanisms: a geometry-and-meshing calculation in `sectionproperties` and a stateful finite-element analysis with DDM in `OpenSees`. Tesseract gives both stages a common interface for forward evaluation and backward propagation, and [Tesseract-JAX](https://docs.pasteurlabs.ai/projects/tesseract-jax/latest/) exposes their composition as a differentiable JAX function [[6]](#ref-6).
+The central challenge is to preserve the mature capabilities of two specialized engineering solvers while combining their different differentiation mechanisms in a single inference workflow. `sectionproperties` provides geometry construction, meshing, and finite-element evaluation of damaged cross-sections, but it does not expose derivatives with respect to the corrosion parameters. `OpenSees` provides mature static and transient structural analysis together with its native DDM for sensitivity analysis, but it cannot be used directly by `JAX`-based probabilistic inference.
 
-This interface allows [BlackJAX](https://blackjax-devs.github.io/blackjax/) [[7]](#ref-7) and [Optax](https://optax.readthedocs.io/en/latest/) [[8]](#ref-8) to optimize the variational objective through the complete section-to-structure model. Tesseract therefore provides the connection between the engineering solvers and the gradient-based inference loop.
+
+`Tesseract` represents each solver through the standardized forward and VJP interface while retaining its solver-specific differentiation mechanism. `Tesseract-JAX` registers these external calls as differentiable JAX operations, enabling gradients to propagate through `OpenSees` and `sectionproperties` back to the original corrosion parameters.
+
 
 ## Installation
 
@@ -354,13 +356,11 @@ opensees-shm-tesseract/
 
 <a id="ref-4"></a>[4] M. Zhu, F. McKenna, and M. H. Scott, “OpenSeesPy: Python library for the OpenSees finite element framework,” *SoftwareX*, vol. 7, pp. 6–11, 2018. [doi:10.1016/j.softx.2017.10.009](https://doi.org/10.1016/j.softx.2017.10.009).
 
-<a id="ref-5"></a>[5] D. Häfner and A. Lavin, “Tesseract Core: Universal, autodiff-native software components for Simulation Intelligence,” *Journal of Open Source Software*, vol. 10, no. 111, p. 8385, 2025. [doi:10.21105/joss.08385](https://doi.org/10.21105/joss.08385).
+<a id="ref-5"></a>[5] R. Frostig, M. Johnson, and C. Leary, “Compiling machine learning programs via high-level tracing,” *SysML Conference*, 2018. [Publication](https://research.google/pubs/compiling-machine-learning-programs-via-high-level-tracing/).
 
-<a id="ref-6"></a>[6] R. Frostig, M. Johnson, and C. Leary, “Compiling machine learning programs via high-level tracing,” *SysML Conference*, 2018. [Publication](https://research.google/pubs/compiling-machine-learning-programs-via-high-level-tracing/).
+<a id="ref-6"></a>[6] D. Häfner and A. Lavin, “Tesseract Core: Universal, autodiff-native software components for Simulation Intelligence,” *Journal of Open Source Software*, vol. 10, no. 111, p. 8385, 2025. [doi:10.21105/joss.08385](https://doi.org/10.21105/joss.08385).
 
 <a id="ref-7"></a>[7] A. Cabezas et al., “BlackJAX: Composable Bayesian inference in JAX,” arXiv:2402.10797, 2024. [arXiv:2402.10797](https://arxiv.org/abs/2402.10797).
-
-<a id="ref-8"></a>[8] I. Babuschkin et al., “The DeepMind JAX Ecosystem,” 2020. [Software citation](https://github.com/google-deepmind).
 
 ## License
 
