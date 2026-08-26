@@ -69,54 +69,35 @@ The contribution is a set of explicit differentiable contracts that turns an exi
 
 ## The composition
 
-Let the section-analysis `Tesseract` be $\mathcal S$, the `OpenSees` `Tesseract` be $\mathcal O$, and the `JAX` observation operator be $\mathcal H$. The complete forward model is
+Let $\mathcal S$ denote the `section-properties` Tesseract, $\mathcal G$ the `JAX` mapping from section outputs to registered element parameters, $\mathcal O$ the `opensees-ddm` Tesseract, and $\mathcal H$ the `JAX` observation operator. The forward model is
 
 ```math
-\boldsymbol p = \mathcal S(\boldsymbol\theta),
+\boldsymbol c=\mathcal S(\boldsymbol\theta),
 \qquad
-\boldsymbol r = \mathcal O(\boldsymbol p),
+\boldsymbol p=\mathcal G(\boldsymbol c),
 \qquad
-\boldsymbol y = \mathcal H(\boldsymbol r),
+\boldsymbol r=\mathcal O(\boldsymbol p),
+\qquad
+\boldsymbol y=\mathcal H(\boldsymbol r).
 ```
 
-Here, $\boldsymbol\theta$ describes the local flange and web losses. The first Tesseract rebuilds and meshes each damaged cross-section with `sectionproperties`, then returns the section properties $\boldsymbol p$. The second Tesseract inserts those properties into the relevant `OpenSees` elements, runs the prescribed static or transient analysis, and returns the response history $\boldsymbol r$. Finally, the `JAX` operator $\mathcal H$ selects or transforms those responses into the observations $\boldsymbol y$ used by the objective or likelihood.
+The corrosion parameters $\boldsymbol\theta$ define the section geometry. The first Tesseract runs the `sectionproperties` geometry, meshing, and section analysis to obtain $\boldsymbol c$. The `JAX` mapping $\mathcal G$ selects or scales these properties into the parameter vector $\boldsymbol p$ registered in `OpenSees`. The second Tesseract runs the prescribed structural analysis and returns the response history $\boldsymbol r$, from which $\mathcal H$ constructs the observations used by the objective or likelihood.
 
-The same composition is traversed in reverse during differentiation. `JAX` differentiates the observation and statistical calculations, the OpenSees Tesseract contracts native DDM response sensitivities, and the section Tesseract propagates the resulting property gradient through the section analysis. The complete workflow therefore behaves as one differentiable parameter-to-observation function even though its numerical stages use different solvers and derivative mechanisms.
-
-The diagram below summarizes both the forward data flow and the gradient-driven inference loop.
+The external solvers are not literally executed backward. For a scalar loss $\mathcal L$, `JAX` first differentiates the observation and statistical calculations to obtain a cotangent for $\boldsymbol r$. The `opensees-ddm` VJP then rebuilds and reruns the analysis with DDM enabled, reads the nodal response sensitivities, and contracts them with that cotangent. `JAX` differentiates $\mathcal G$, after which the `section-properties` VJP perturbs the corrosion variables, reruns the native section analysis, and contracts the resulting property derivatives. This returns $\partial\mathcal L/\partial\boldsymbol\theta$ to the variational optimization.
 
 ```text
-local corrosion losses
-          θ
-          │
-          ▼
-┌──────────────────────────────────────────────┐
-│ Tesseract A — section analysis               │
-│ sectionproperties: geometry + mesh + FEM     │
-└──────────────────────────────────────────────┘
-          │  section and element properties p
-          ▼
-┌──────────────────────────────────────────────┐
-│ Tesseract B — structural analysis            │
-│ OpenSees: model + analysis + responses       │
-└──────────────────────────────────────────────┘
-          │  response history r
-          ▼
-┌──────────────────────────────────────────────┐
-│ JAX statistical layer                        │◀──── observed data y_obs
-│ observation operator + log density + ELBO    │
-└──────────────────────────────────────────────┘
-          │  ELBO and gradients
-          ▼
-┌──────────────────────────────────────────────┐
-│ BlackJAX variational family + Optax updates  │
-└──────────────────────────────────────────────┘
-          │
-          ▼
-approximate posterior q_φ(θ | y_obs)
-damage estimates and uncertainty
-```
+Forward evaluation
 
+θ ──▶ section-properties Tesseract ──▶ c ──▶ JAX mapping ──▶ p
+                                                          │
+                                                          ▼
+objective / likelihood ◀── JAX observation ◀── r ◀── opensees-ddm Tesseract
+
+Gradient evaluation
+
+∂L/∂θ ◀── section finite-difference VJP ◀── JAX VJP
+       ◀── DDM sensitivities + contraction ◀── JAX observation/statistical VJP ◀── ∂L
+```
 
 ## Why Tesseract
 
@@ -167,7 +148,7 @@ This example validates the complete differentiable composition on a nonlinear, p
 
 #### Model
 
-The structure is a quasi-one-dimensional chain of $12$ serial truss elements. Each element uses the `OpenSees` `Steel01` material model with fixed yield stress $F_y=250\;\mathrm{MPa}$, elastic modulus $E=200\;\mathrm{GPa}$, and hardening ratio $b=0.02$. Its independent geometric inputs are the flange and web losses
+The structure is a quasi-one-dimensional chain of $12$ serial truss elements. Each element uses the `OpenSees` `Steel01` material model with fixed yield stress $F_y=250$ MPa, elastic modulus $E=200$ GPa, and hardening ratio $b=0.02$. Its independent geometric inputs are the flange and web losses
 
 ```math
 \boldsymbol\theta_i = [\Delta t_{f,i},\Delta t_{w,i}],
@@ -229,7 +210,7 @@ figs/gradient_validation.png    # gradient accuracy and timing comparison
 
 ### 2. Static frame corrosion inference
 
-This example applies the two-Tesseract composition to Bayesian estimation of localized corrosion in a two-dimensional, three-story, three-bay steel frame. Each bay is $5\;\mathrm{m}$ wide, each story is $4\;\mathrm{m}$ high, and every physical member is divided into four `OpenSees` `dispBeamColumn` elements.
+This example applies the two-Tesseract composition to Bayesian estimation of localized corrosion in a two-dimensional, three-story, three-bay steel frame. Each bay is $5$ m wide, each story is $4$ m high, and every physical member is divided into four `OpenSees` `dispBeamColumn` elements.
 
 #### Model and observations
 
@@ -265,9 +246,9 @@ with a standard deviation equal to $2\%$ of the absolute response magnitude and 
 
 #### Inference and results
 
-The priors are $\Delta t_f\sim\mathcal U(0,12\;\mathrm{mm})$ and $\Delta t_w\sim\mathcal U(0,8\;\mathrm{mm})$. A sigmoid transformation enforces these bounds, while `BlackJAX` fits a full-rank Gaussian in unconstrained coordinates. Starting from $2\;\mathrm{mm}$ at every coordinate, the optimization uses $200$ updates, eight ELBO samples per update, an initial learning rate of $0.025$, and $10{,}000$ posterior samples.
+The priors are $\Delta t_f\sim\mathcal U(0,12)$ mm and $\Delta t_w\sim\mathcal U(0,8)$ mm. A sigmoid transformation enforces these bounds, while `BlackJAX` fits a full-rank Gaussian in unconstrained coordinates. Starting from $2$ mm at every coordinate, the optimization uses $200$ updates, eight ELBO samples per update, an initial learning rate of $0.025$, and $10{,}000$ posterior samples.
 
-Figure 4 summarizes the optimization, parameter estimates, and response fit. The Euclidean parameter error decreases from $11.895\;\mathrm{mm}$ to $1.000\;\mathrm{mm}$; the whitened clean-response RMSE falls from $12.597$ to $0.138$ noise standard deviations, and the whitened noisy-data RMSE from $12.575$ to $1.007$. All eight true losses lie inside their $95\%$ marginal credible intervals.
+Figure 4 summarizes the optimization, parameter estimates, and response fit. The Euclidean parameter error decreases from $11.895$ mm to $1.000$ mm; the whitened clean-response RMSE falls from $12.597$ to $0.138$ noise standard deviations, and the whitened noisy-data RMSE from $12.575$ to $1.007$. All eight true losses lie inside their $95\%$ marginal credible intervals.
 
 <p align="center">
   <img src="figs/shm_frame_summary.png" width="100%" alt="Variational inference results">
@@ -307,7 +288,7 @@ This example estimates corrosion severity at three known candidate members of a 
 
 #### Model and observations
 
-The bridge is $36\;\mathrm{m}$ long and $4\;\mathrm{m}$ wide, with $87$ nodes, $233$ steel line elements, and $48$ deck shell elements. Three separated chord members are assigned corrosion parameters $\boldsymbol s=[s_1,s_2,s_3]$. At each site, the prescribed local damage shape uses
+The bridge is $36$ m long and $4$ m wide, with $87$ nodes, $233$ steel line elements, and $48$ deck shell elements. Three separated chord members are assigned corrosion parameters $\boldsymbol s=[s_1,s_2,s_3]$. At each site, the prescribed local damage shape uses
 
 ```math
 \Delta t_f=s_i,
@@ -317,7 +298,7 @@ The bridge is $36\;\mathrm{m}$ long and $4\;\mathrm{m}$ wide, with $87$ nodes, $
 
 so flange and web losses are controlled by one severity rather than inferred independently. For each forward evaluation, the `section-properties` Tesseract computes the damaged section properties and maps the changes in $A$, $I_y$, and $I_z$ to the registered parameters of the `opensees-ddm` Tesseract.
 
-A two-direction base pulse acts for $0.5\;\mathrm{s}$, followed by free vibration to $1.5\;\mathrm{s}$; the amplified deformation history is shown in Figure 5. Six three-axis accelerometers provide $26$ retained time samples and $18$ absolute-acceleration channels. Independent Gaussian noise uses $2\%$ of each channel RMS with a $10^{-4}g$ floor. The true severities are $(9,10,11)\;\mathrm{mm}$ and the variational mean starts from $(2,2,2)\;\mathrm{mm}$. The end-to-end gradient has a relative $L_2$ error of $5.535\times10^{-7}$ against central finite differences.
+A two-direction base pulse acts for $0.5$ s, followed by free vibration to $1.5$ s; the amplified deformation history is shown in Figure 5. Six three-axis accelerometers provide $26$ retained time samples and $18$ absolute-acceleration channels. Independent Gaussian noise uses $2\%$ of each channel RMS with a $10^{-4}g$ floor. The true severities are $(9,10,11)$ mm and the variational mean starts from $(2,2,2)$ mm. The end-to-end gradient has a relative $L_2$ error of $5.535\times10^{-7}$ against central finite differences.
 
 <p align="center">
   <img src="figs/shm_bridge_transient.gif" width="100%" alt="Animated pedestrian bridge response under transient excitation">
@@ -326,9 +307,9 @@ A two-direction base pulse acts for $0.5\;\mathrm{s}$, followed by free vibratio
 
 #### Inference and results
 
-The priors are $s_i\sim\mathcal U(0,12.4\;\mathrm{mm})$. `BlackJAX` fits a full-rank Gaussian in unconstrained coordinates using $100$ updates, four ELBO samples per update, and $10{,}000$ posterior samples.
+The priors are $s_i\sim\mathcal U(0,12.4)$ mm. `BlackJAX` fits a full-rank Gaussian in unconstrained coordinates using $100$ updates, four ELBO samples per update, and $10{,}000$ posterior samples.
 
-The optimization history and learned parameter dependence are shown together in Figure 6. The posterior means are $(8.805,9.882,10.896)\;\mathrm{mm}$ with standard deviations $(0.285,0.222,0.169)\;\mathrm{mm}$, and all three true values lie within their $95\%$ credible intervals. The clean-response RMSE decreases from $3.688$ to $0.067$ noise standard deviations, while the noisy-data RMSE decreases from $3.748$ to $1.019$.
+The optimization history and learned parameter dependence are shown together in Figure 6. The posterior means are $(8.805,9.882,10.896)$ mm with standard deviations $(0.285,0.222,0.169)$ mm, and all three true values lie within their $95\%$ credible intervals. The clean-response RMSE decreases from $3.688$ to $0.067$ noise standard deviations, while the noisy-data RMSE decreases from $3.748$ to $1.019$.
 
 <p align="center">
   <img src="figs/shm_bridge_inference.png" width="100%" alt="Bridge full-rank variational inference results">
