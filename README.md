@@ -14,8 +14,7 @@ For any questions, please contact the team at [wxuby@connect.ust.hk](mailto:wxub
 
 ## Table of contents
 - [Introduction](#introduction)
-- [Modeling framework](#modeling-framework)
-- [The composition](#the-composition)
+- [Modeling framework](#modeling-framework-and-composition)
 - [Why Tesseract](#why-tesseract)
 - [Installation](#installation)
 - [Examples](#examples)
@@ -47,108 +46,48 @@ where $\boldsymbol\theta$ denotes corrosion parameters, $\boldsymbol p$ denotes 
 
 ## Modeling framework
 
-In this project, we consider a two-scale mechanical model that resolves both the local effect of corrosion on a steel cross-section and its global effect on the response of the assembled structure. These two stages are implemented using established engineering libraries.
+The forward model links local corrosion to structural measurements through three stages. At the section scale, `sectionproperties` [[2]](#ref-2) constructs and meshes each damaged cross-section and evaluates its area and second moments of area. At the structural scale, [OpenSeesPy](https://openseespydoc.readthedocs.io/) [[4]](#ref-4) assigns these properties to selected elements and computes static or transient responses; its Direct Differentiation Method (DDM) supplies response sensitivities with respect to the registered element properties. A JAX layer then converts the response history into the quantities used by the objective or likelihood.
 
-At the cross-section scale, `sectionproperties` [[2]](#ref-2) provides computational-geometry, meshing, and cross-section analysis capabilities for arbitrary section shapes. It maps a parameterized section geometry to properties such as area, centroid, and second moments of area, which can then be supplied to a member- or system-level mechanical model.
-
-At the structural scale, [OpenSeesPy](https://openseespydoc.readthedocs.io/) [[4]](#ref-4) provides Python access to `OpenSees`, a finite-element framework for structural and earthquake engineering [[3]](#ref-3). It assembles the global structure from nodes, constraints, coordinate transformations, sections, elements, and load patterns; solves the prescribed analyses; and returns the requested nodal responses. The `OpenSees` Direct Differentiation Method (DDM) supplies sensitivities of those responses with respect to registered structural parameters.
-
-The two libraries operate through numerical mechanisms outside the native `JAX` computation graph: `sectionproperties` performs geometry and section finite-element calculations, while `OpenSees` is a stateful solver with its own sensitivity machinery. End-to-end inference therefore requires a common interface for composing derivatives across both boundaries:
-
-```math
-\frac{\partial \boldsymbol y}{\partial \boldsymbol\theta}
-=
-\frac{\partial \boldsymbol y}{\partial \boldsymbol r}
-\frac{\partial \boldsymbol r}{\partial \boldsymbol p}
-\frac{\partial \boldsymbol p}{\partial \boldsymbol\theta}.
-```
-
-This project packages the section and structural analyses as separate `Tesseract` components [[5]](#ref-5). Each component exposes its native forward calculation together with a vector-Jacobian product. [Tesseract-JAX](https://docs.pasteurlabs.ai/projects/tesseract-jax/latest/) composes these interfaces with response processing and probability calculations in `JAX` [[6]](#ref-6). The resulting end-to-end gradient drives variational inference with [BlackJAX](https://blackjax-devs.github.io/blackjax/) [[7]](#ref-7) and optimization with [Optax](https://optax.readthedocs.io/en/latest/) [[8]](#ref-8).
-
-The contribution is a set of explicit differentiable contracts that turns an existing cross-section-to-structure workflow into a reusable parameter-to-observation map for inverse analysis and uncertainty quantification.
-
-## The composition
-
-Let $\mathcal S$ denote the `section-properties` Tesseract, $\mathcal G$ the `JAX` mapping from section outputs to registered element parameters, $\mathcal O$ the `opensees-ddm` Tesseract, and $\mathcal H$ the `JAX` observation operator. The forward model is
-
-```math
-\boldsymbol c=\mathcal S(\boldsymbol\theta),
-\qquad
-\boldsymbol p=\mathcal G(\boldsymbol c),
-\qquad
-\boldsymbol r=\mathcal O(\boldsymbol p),
-\qquad
-\boldsymbol y=\mathcal H(\boldsymbol r).
-```
-
-The corrosion parameters $\boldsymbol\theta$ define the section geometry. The first Tesseract runs the `sectionproperties` geometry, meshing, and section analysis to obtain $\boldsymbol c$. The `JAX` mapping $\mathcal G$ selects or scales these properties into the parameter vector $\boldsymbol p$ registered in `OpenSees`. The second Tesseract runs the prescribed structural analysis and returns the response history $\boldsymbol r$, from which $\mathcal H$ constructs the observations used by the objective or likelihood.
-
-For a scalar loss $\mathcal L$, `JAX` first differentiates the observation and statistical calculations to obtain a cotangent for $\boldsymbol r$. The `opensees-ddm` VJP then rebuilds and reruns the analysis with DDM enabled, reads the nodal response sensitivities, and contracts them with that cotangent. `JAX` differentiates $\mathcal G$, after which the `section-properties` VJP perturbs the corrosion variables, reruns the native section analysis, and contracts the resulting property derivatives. This returns $\partial\mathcal L/\partial\boldsymbol\theta$ to the variational optimization.
+The section and structural analyses are packaged as two Tesseracts [[5]](#ref-5). Downward arrows show the forward calculation, while upward arrows show backward propagation through the two components.
 
 ```text
-local corrosion parameters
-          θ
-          │
-          ▼
-┌──────────────────────────────────────────────┐
-│ Tesseract A — section analysis               │
-│ sectionproperties: geometry + mesh + FEM     │
-└──────────────────────────────────────────────┘
-          │  section properties c
-          ▼
-┌──────────────────────────────────────────────┐
-│ JAX property mapping                         │
-│ section properties c → OpenSees parameters p │
-└──────────────────────────────────────────────┘
-          │  registered parameters p
-          ▼
-┌──────────────────────────────────────────────┐
-│ Tesseract B — structural analysis            │
-│ OpenSees: static/transient analysis + DDM     │
-└──────────────────────────────────────────────┘
-          │  response history r
-          ▼
-┌──────────────────────────────────────────────┐
-│ JAX statistical layer                        │◀──── observed data y_obs
-│ observation operator + log density + ELBO    │
-└──────────────────────────────────────────────┘
-          │  objective and gradients
-          ▼
-┌──────────────────────────────────────────────┐
-│ BlackJAX variational family + Optax updates  │
-└──────────────────────────────────────────────┘
-          │
-          ▼
-approximate posterior q_φ(θ | y_obs)
-damage estimates and uncertainty
+                      forward ↓            ↑ gradient
+
+                          corrosion parameters θ
+                              │            ▲
+                              │            │ ∂L/∂θ
+                              ▼            │
+            ┌──────────────────────────────────────────────┐
+            │ Tesseract A — section analysis               │
+            │ sectionproperties: geometry + mesh + FEM     │
+            └──────────────────────────────────────────────┘
+                              │            ▲
+         section properties p │            │ property cotangent
+                              ▼            │ finite-difference VJP
+            ┌──────────────────────────────────────────────┐
+            │ Tesseract B — structural analysis            │
+            │ OpenSees: static / transient analysis        │
+            └──────────────────────────────────────────────┘
+                              │            ▲
+           response history r │            │ response cotangent
+                              ▼            │ DDM + contraction
+            ┌──────────────────────────────────────────────┐
+            │ JAX observation and statistical layer        │◀── observed data
+            │ response processing + log density            │
+            └──────────────────────────────────────────────┘
+                              │            ▲
+                              │            │
+                              ▼            │
+                             objective / ELBO
 ```
+
+During backward propagation, JAX differentiates the observation and statistical calculations to obtain the response cotangent. The `opensees-ddm` Tesseract contracts this cotangent with native DDM sensitivities, and the `section-properties` Tesseract evaluates its finite-difference VJP using the resulting property cotangent.
 
 ## Why Tesseract
 
-The numerical stages expose different derivative capabilities and interfaces. The project equips `sectionproperties` with a finite-difference pullback and uses the DDM response sensitivities available from `OpenSees`. `Tesseract` gives both solvers a common forward-and-pullback contract, allowing `Tesseract-JAX` to compose them as one differentiable operation.
+The workflow crosses two solver boundaries with different execution and differentiation mechanisms: a geometry-and-meshing calculation in `sectionproperties` and a stateful finite-element analysis with DDM in `OpenSees`. Tesseract gives both stages a common interface for forward evaluation and backward propagation, and [Tesseract-JAX](https://docs.pasteurlabs.ai/projects/tesseract-jax/latest/) exposes their composition as a differentiable JAX function [[6]](#ref-6).
 
-The `section-properties` Tesseract treats `section_spec` as static configuration and the corrosion array $\boldsymbol\theta\in\mathbb R^{n_s\times2}$ as its differentiable input. It returns $\boldsymbol p\in\mathbb R^{n_s\times6}$ containing area, centroid, and second moments of area, and evaluates its pullback through finite-difference contractions of the native `sectionproperties` calculation.
-
-The `opensees-ddm` Tesseract treats the serialized analysis program as static configuration and the registered `OpenSees` parameter vector $\boldsymbol p$ as its differentiable input. It returns a response history $\boldsymbol r\in\mathbb R^{n_t\times n_r}$. During the pullback, `OpenSees` DDM supplies the response sensitivities and the wrapper contracts them with the incoming response weights to produce the parameter gradient.
-
-For a scalar objective $\mathcal L$, `Tesseract-JAX` composes these pullbacks with the `JAX` portion of the calculation:
-
-```math
-\frac{\partial \mathcal L}{\partial \boldsymbol\theta}
-=
-\left(
-\frac{\partial \boldsymbol p}{\partial \boldsymbol\theta}
-\right)^\mathsf{T}
-\left(
-\frac{\partial \boldsymbol r}{\partial \boldsymbol p}
-\right)^\mathsf{T}
-\left(
-\frac{\partial \boldsymbol y}{\partial \boldsymbol r}
-\right)^\mathsf{T}
-\frac{\partial \mathcal L}{\partial \boldsymbol y}.
-```
-
-The section component supplies the first pullback, the DDM sensitivities and wrapper contraction supply the second, and `JAX` differentiates the observation and statistical layers. `BlackJAX` uses the resulting gradient at every variational update.
+This interface allows [BlackJAX](https://blackjax-devs.github.io/blackjax/) [[7]](#ref-7) and [Optax](https://optax.readthedocs.io/en/latest/) [[8]](#ref-8) to optimize the variational objective through the complete section-to-structure model. Tesseract therefore provides the connection between the engineering solvers and the gradient-based inference loop.
 
 ## Installation
 

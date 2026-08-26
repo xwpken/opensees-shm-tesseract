@@ -32,12 +32,12 @@ plt.rcParams.update({
     "text.usetex": True,
     "font.family": "serif",
     "font.serif": ["Computer Modern Roman"],
-    "font.size": 17,
-    "axes.titlesize": 19,
-    "axes.labelsize": 17,
-    "xtick.labelsize": 16,
-    "ytick.labelsize": 16,
-    "legend.fontsize": 15,
+    "font.size": 22,
+    "axes.titlesize": 29,
+    "axes.labelsize": 24,
+    "xtick.labelsize": 21,
+    "ytick.labelsize": 21,
+    "legend.fontsize": 21,
 })
 
 STEEL_BLUE = "#315D8A"
@@ -234,11 +234,12 @@ def animate_transient_response(
     axes.axis("off")
     axes.set_title(
         rf"Bridge response under designed transient excitation ($\times {scale:.0f}$)",
-        pad=8,
+        fontsize=29,
+        pad=10,
     )
     annotation = figure.text(
         0.5, 0.205, "",
-        ha="center", va="center", fontsize=21,
+        ha="center", va="center", fontsize=27,
     )
 
     figure.legend(
@@ -255,7 +256,11 @@ def animate_transient_response(
         loc="lower center",
         bbox_to_anchor=(0.5, 0.045),
         ncol=5,
+        fontsize=21,
         frameon=True,
+        handlelength=1.6,
+        handletextpad=0.5,
+        columnspacing=1.0,
     )
     figure.subplots_adjust(left=0.015, right=0.985, bottom=0.245, top=0.91)
 
