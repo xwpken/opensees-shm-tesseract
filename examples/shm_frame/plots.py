@@ -10,7 +10,9 @@ from matplotlib.lines import Line2D
 from matplotlib.ticker import MaxNLocator
 from scipy.stats import gaussian_kde
 
-from utils.plot_style import BLUE, ERROR_CMAP, RED
+from utils.plot_style import BLUE, ERROR_CMAP, RED, set_plot_style
+
+set_plot_style(25)
 
 
 def plot_inference_summary(
@@ -29,7 +31,7 @@ def plot_inference_summary(
     mean = samples.mean(axis=0)
     lower, upper = np.quantile(samples, [0.025, 0.975], axis=0)
 
-    figure, axes = plt.subplots(1, 3, figsize=(19.5, 5.8))
+    figure, axes = plt.subplots(1, 3, figsize=(24.0, 7.2))
     steps = np.arange(len(vi_loss))
     window = min(20, max(1, len(vi_loss) // 5))
     if len(vi_loss) >= window:
@@ -58,7 +60,7 @@ def plot_inference_summary(
         ylim=(0.0, None),
     )
     axes[0].grid(True, alpha=0.2)
-    axes[0].legend(fontsize=19)
+    axes[0].legend(fontsize=20)
 
     positions = np.arange(truth.size)
     axes[1].errorbar(
@@ -94,13 +96,13 @@ def plot_inference_summary(
     axes[1].legend(
         loc="upper center",
         ncol=3,
-        fontsize=21,
+        fontsize=20,
         handlelength=1.2,
         handletextpad=0.45,
         columnspacing=0.9,
         borderpad=0.35,
     )
-    axes[1].tick_params(axis="x", labelsize=18)
+    axes[1].tick_params(axis="x", labelsize=20)
 
     x = np.arange(2)
     width = 0.24
@@ -126,13 +128,21 @@ def plot_inference_summary(
         ylim=(0.0, None),
     )
     axes[2].grid(True, axis="y", alpha=0.2)
-    axes[2].legend(fontsize=19)
+    axes[2].legend(fontsize=20)
 
     for axis in axes:
+        axis.title.set_fontsize(28)
+        axis.xaxis.label.set_fontsize(26)
+        axis.yaxis.label.set_fontsize(26)
         axis.yaxis.set_major_locator(MaxNLocator(nbins=5, min_n_ticks=3))
-        axis.tick_params(axis="both", which="major", width=1.0, length=4)
+        axis.tick_params(
+            axis="both", which="major", labelsize=22, width=1.1, length=5
+        )
 
-    figure.tight_layout()
+    # Keep the two-line parameter labels readable without crowding.
+    axes[1].tick_params(axis="x", labelsize=19)
+
+    figure.tight_layout(pad=1.0, w_pad=2.4)
     path = Path(output)
     path.parent.mkdir(parents=True, exist_ok=True)
     figure.savefig(path, dpi=200, bbox_inches="tight")

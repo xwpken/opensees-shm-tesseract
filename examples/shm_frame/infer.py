@@ -32,9 +32,6 @@ from examples.shm_frame.model import (
     true_corrosion,
 )
 from examples.shm_frame.plots import plot_inference_summary, plot_posterior_matrix
-from utils.plot_style import set_plot_style
-
-set_plot_style(25)
 
 SECTION_API = ROOT / "tesseracts" / "section_properties" / "tesseract_api.py"
 OPENSEES_API = ROOT / "tesseracts" / "opensees_ddm" / "tesseract_api.py"

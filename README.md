@@ -14,26 +14,18 @@ For any questions, please contact the team at [wxuby@connect.ust.hk](mailto:wxub
 
 ## Table of contents
 
-- [Differentiable Structural Health Monitoring with Tesseract](#differentiable-structural-health-monitoring-with-tesseract)
-  - [Table of contents](#table-of-contents)
-  - [Introduction](#introduction)
-  - [Modeling framework](#modeling-framework)
-  - [The composition](#the-composition)
-  - [Why Tesseract](#why-tesseract)
-  - [Installation](#installation)
-  - [Examples](#examples)
-    - [Gradient validation](#gradient-validation)
-      - [Model](#model)
-      - [Results](#results)
-    - [Static frame corrosion inference](#static-frame-corrosion-inference)
-      - [Model and observations](#model-and-observations)
-      - [Inference and results](#inference-and-results)
-    - [Transient bridge corrosion inference](#transient-bridge-corrosion-inference)
-      - [Model and observations](#model-and-observations-1)
-      - [Inference and results](#inference-and-results-1)
-  - [Repository structure](#repository-structure)
-  - [References](#references)
-  - [License](#license)
+- [Introduction](#introduction)
+- [Modeling framework](#modeling-framework)
+- [The composition](#the-composition)
+- [Why Tesseract](#why-tesseract)
+- [Installation](#installation)
+- [Examples](#examples)
+  - [1. Gradient validation](#1-gradient-validation)
+  - [2. Static frame corrosion inference](#2-static-frame-corrosion-inference)
+  - [3. Transient bridge corrosion inference](#3-transient-bridge-corrosion-inference)
+- [Repository structure](#repository-structure)
+- [References](#references)
+- [License](#license)
 
 ## Introduction
 
@@ -170,7 +162,7 @@ python -m pip install -r requirements.txt
 
 ## Examples
 
-### Gradient validation
+### 1. Gradient validation
 
 This example validates the complete differentiable composition on a nonlinear, path-dependent problem before it is used inside an inference workflow.
 
@@ -236,7 +228,7 @@ figs/gradient_hysteresis.gif    # animated force-displacement history
 figs/gradient_validation.png    # gradient accuracy and timing comparison
 ```
 
-### Static frame corrosion inference
+### 2. Static frame corrosion inference
 
 This example applies the two-Tesseract composition to Bayesian estimation of localized corrosion in a two-dimensional, three-story, three-bay steel frame. Each bay is $5~\mathrm{m}$ wide, each story is $4~\mathrm{m}$ high, and every physical member is divided into four `OpenSees` `dispBeamColumn` elements.
 
@@ -307,7 +299,7 @@ figs/shm_frame_summary.png     # VI trajectory, marginals, and response error
 figs/shm_frame_posterior.png   # full posterior dependence matrix
 ```
 
-### Transient bridge corrosion inference
+### 3. Transient bridge corrosion inference
 
 This example estimates corrosion severity at three known candidate members of a three-dimensional steel pedestrian bridge.
 
