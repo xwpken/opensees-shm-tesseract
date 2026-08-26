@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 .venv/
 figs/*
+!figs/logo.png
 !figs/shm_frame_model.png
 !figs/shm_frame_gradient.png
 !figs/shm_frame_summary.png
