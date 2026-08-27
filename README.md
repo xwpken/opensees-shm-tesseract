@@ -182,7 +182,7 @@ Figure 3 identifies the four candidate regions and shows the Boolean-cut section
   <br><em>Figure 3. Frame model, candidate regions, and corroded section geometries.</em>
 </p>
 
-Two targeted static tests are applied at each site, giving eight load cases. Virtual sensors are placed at the three internal finite-element nodes of each candidate member. Under every load case, the horizontal displacement, vertical displacement, and rotation returned by `OpenSees` are used as observations. The data vector therefore contains $8\times12\times3=288$ nodal response values. Synthetic measurements follow
+Two targeted static tests are applied at each site, giving eight load cases. Virtual sensors are placed at the three internal finite element nodes of each candidate member. Under every load case, the horizontal displacement, vertical displacement, and rotation returned by `OpenSees` are used as observations. The data vector therefore contains $8\times12\times3=288$ nodal response values. Synthetic measurements follow
 
 ```math
 \boldsymbol y_{\mathrm{obs}}
@@ -198,7 +198,7 @@ with a standard deviation equal to 2% of the absolute response magnitude and a s
 
 #### Inference and results
 
-The priors are $\Delta t_f\sim\mathcal U(0,12)$ mm and $\Delta t_w\sim\mathcal U(0,8)$ mm. A sigmoid transformation enforces these bounds, while `BlackJAX` fits a full-rank Gaussian in unconstrained coordinates. Starting from $2$ mm at every coordinate, the optimization uses $200$ updates, eight ELBO samples per update, an initial learning rate of $0.025$, and $10{,}000$ posterior samples.
+The priors are $\Delta t_f\sim\mathcal U(0,12)$ mm and $\Delta t_w\sim\mathcal U(0,8)$ mm. A sigmoid transformation enforces these bounds, while `BlackJAX` fits a full-rank Gaussian in unconstrained coordinates. Starting from $2$ mm at every coordinate, the optimization uses $200$ updates, $8$ ELBO samples per update, an initial learning rate of $0.025$, and $10{,}000$ posterior samples.
 
 Figure 4 summarizes the optimization, parameter estimates, and response fit. The Euclidean parameter error decreases from $11.895$ mm to $1.000$ mm; the whitened clean-response RMSE falls from $12.597$ to $0.138$ noise standard deviations, and the whitened noisy-data RMSE from $12.575$ to $1.007$. All eight true parameters lie inside their 95% marginal credible intervals.
 
@@ -259,7 +259,7 @@ A two-direction base pulse acts for $0.5$ s, followed by free vibration to $1.5$
 
 The priors are $s_i\sim\mathcal U(0,12.4)$ mm. `BlackJAX` fits a full-rank Gaussian in unconstrained coordinates using $100$ updates, $4$ ELBO samples per update, and $10{,}000$ posterior samples.
 
-The optimization history and learned parameter dependence are shown together in Figure 6. The posterior means are $(8.805,9.882,10.896)$ mm with standard deviations $(0.285,0.222,0.169)$ mm, and all three true parameters lie within their 95% credible intervals. The clean-response RMSE decreases from $3.688$ to $0.067$ noise standard deviations, while the noisy-data RMSE decreases from $3.748$ to $1.019$.
+The optimization history and posterior dependence are shown together in Figure 6. The posterior means are $(8.805,9.882,10.896)$ mm with standard deviations $(0.285,0.222,0.169)$ mm, and all three true parameters lie within their 95% credible intervals. The clean-response RMSE decreases from $3.688$ to $0.067$ noise standard deviations, while the noisy-data RMSE decreases from $3.748$ to $1.019$.
 
 <p align="center">
   <img src="figs/shm_bridge_inference.png" width="100%" alt="Bridge full-rank variational inference results">
