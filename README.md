@@ -108,7 +108,7 @@ python -m pip install -r requirements.txt
 
 ### 1. Gradient validation
 
-This example validates the complete differentiable composition on a nonlinear, path-dependent problem before it is used inside an inference workflow.
+This example validates the complete differentiable composition on a nonlinear and path-dependent problem before it is used inside an inference workflow.
 
 #### Model
 
@@ -119,7 +119,7 @@ The structure is a quasi-one-dimensional chain of $12$ serial truss elements. Ea
 \qquad i=1,\ldots,12.
 ```
 
-The complete model therefore has $24$ corrosion parameters. The `section-properties` Tesseract maps each pair to its corroded section properties, and the resulting area $A_i$ is passed directly to the corresponding `OpenSees` truss element as a registered DDM parameter:
+The complete model therefore has $24$ corrosion parameters. The `section-properties` Tesseract maps each pair to its corroded section properties, and the resulting area $A_i$ is passed directly to the corresponding `OpenSees` truss element as a registered DDM parameter. The response history is evaluated under a cyclic loading, and the objective is set as the discrete hysteretic work $W$. The complete forward map can be summarized as:
 
 ```math
 \boldsymbol\theta
@@ -129,14 +129,6 @@ The complete model therefore has $24$ corrosion parameters. The `section-propert
 \boldsymbol u
 \longmapsto
 W.
-```
-
-where the differentiated scalar output $W$ is the discrete hysteretic work
-
-```math
-W = \sum_{n=1}^{N}
-\frac{F_n+F_{n-1}}{2}
-(u_n-u_{n-1}).
 ```
 
 #### Results
