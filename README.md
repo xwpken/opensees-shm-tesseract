@@ -92,13 +92,13 @@ The central challenge is to preserve the mature capabilities of two specialized 
 
 ## Installation
 
-Following the instructions below will create a Python virtual environment and install the required dependencies.
+Following the instructions below will create a Python virtual environment and install the required dependencies. These commands have been tested with Python 3.13.
 
 ```bash
 git clone https://github.com/xwpken/opensees-shm-tesseract.git
 cd opensees-shm-tesseract
 
-python3.13 -m venv .venv
+python -m venv .venv
 source .venv/bin/activate
 python -m pip install --upgrade pip
 python -m pip install -r requirements.txt
