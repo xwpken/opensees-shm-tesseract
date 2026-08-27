@@ -112,7 +112,7 @@ This example validates the complete differentiable composition on a nonlinear an
 
 #### Model
 
-The structure is a quasi-one-dimensional chain of $12$ serial truss elements. Each element uses the `OpenSees` `Steel01` material model with elastic modulus $E=200$ GPa, fixed yield stress $F_y=250$ MPa, and hardening ratio $b=0.02$. Its independent geometric inputs are the flange and web losses
+The structure is a quasi-one-dimensional chain of $12$ serial truss elements. Each element uses the `OpenSees` `Steel01` material model with elastic modulus $E=200$ GPa, yield stress $F_y=250$ MPa, and hardening ratio $b=0.02$. Its independent geometric inputs are the flange and web losses
 
 ```math
 \boldsymbol\theta_i = [\Delta t_{f,i},\Delta t_{w,i}],
@@ -133,7 +133,7 @@ W.
 
 #### Results
 
-Figure 1 shows the yielding, unloading, and load reversal captured by the cyclic analysis. For the resulting $24$ corrosion parameters and $120$ load increments, the composed gradient agrees with full-pipeline central finite differences to a relative $L_2$ error of approximately $2.3\times10^{-10}$, and all active gradient signs agree. As summarized in Figure 2, the composed pipeline is approximately $10\times$ faster than central differences.
+Figure 1 shows the yielding, unloading, and load reversal captured by the cyclic analysis. For the $24$ corrosion parameters, the composed gradient agrees with full-pipeline central finite differences to a relative $L_2$ error of approximately $2.3\times10^{-10}$, and all active gradient signs agree. As summarized in Figure 2, the composed pipeline is approximately $10\times$ faster than the finite difference evaluation.
 
 <p align="center">
   <img src="figs/gradient_hysteresis.gif" width="50%" alt="Animated cyclic elastoplastic response">
