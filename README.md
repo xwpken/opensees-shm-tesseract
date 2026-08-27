@@ -112,7 +112,7 @@ This example validates the complete differentiable composition on a nonlinear, p
 
 #### Model
 
-The structure is a quasi-one-dimensional chain of $12$ serial truss elements. Each element uses the `OpenSees` `Steel01` material model with fixed yield stress $F_y=250$ MPa, elastic modulus $E=200$ GPa, and hardening ratio $b=0.02$. Its independent geometric inputs are the flange and web losses
+The structure is a quasi-one-dimensional chain of $12$ serial truss elements. Each element uses the `OpenSees` `Steel01` material model with elastic modulus $E=200$ GPa, fixed yield stress $F_y=250$ MPa, and hardening ratio $b=0.02$. Its independent geometric inputs are the flange and web losses
 
 ```math
 \boldsymbol\theta_i = [\Delta t_{f,i},\Delta t_{w,i}],
@@ -131,16 +131,13 @@ The complete model therefore has $24$ corrosion parameters. The `section-propert
 W.
 ```
 
-A $120$-step cyclic force history produces elastic loading, yielding, unloading, and load reversal.
-
-The differentiated scalar output is the discrete hysteretic work
+where the differentiated scalar output $W$ is the discrete hysteretic work
 
 ```math
 W = \sum_{n=1}^{N}
 \frac{F_n+F_{n-1}}{2}
 (u_n-u_{n-1}).
 ```
-The reference gradient perturbs the original corrosion parameters and repeats the entire section and structural analyses, providing an end-to-end check of the composed pipeline.
 
 #### Results
 
