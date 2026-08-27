@@ -329,8 +329,6 @@ opensees-shm-tesseract/
 └── requirements.txt
 ```
 
-
-
 ## References
 
 <a id="ref-1"></a>[1] K. Itle and M. Ford, “Failures: School corrosion underscores documentation importance,” *The Construction Specifier*, October 5, 2023. [Article](https://www.constructionspecifier.com/failures-school-corrosion-underscores-documentation-importance/). 
