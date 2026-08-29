@@ -12,5 +12,6 @@ figs/*
 !figs/shm_frame_posterior.png
 !figs/gradient_hysteresis.gif
 !figs/gradient_validation.png
+!figs/ytb.png
 
 results/

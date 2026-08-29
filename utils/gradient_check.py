@@ -73,7 +73,11 @@ def plot_gradient_check(
     parity.set_ylim(lower, upper)
     parity.set_aspect("equal", adjustable="box")
     parity.set_xlabel(r"$|\,\mathrm{finite\!\!-\!difference\ gradient}\,|$", fontsize=24)
-    parity.set_ylabel(f"|{actual_label}|", fontsize=24)
+    actual_label_math = actual_label.replace(" ", r"\ ")
+    parity.set_ylabel(
+        rf"$|\,\mathrm{{{actual_label_math}}}\,|$",
+        fontsize=24,
+    )
     parity.set_title("Gradient parity", fontsize=26)
     scale_text = rf"$\times 10^{{{exponent}}}$"
     if gradient_unit:

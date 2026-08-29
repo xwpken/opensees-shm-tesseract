@@ -12,6 +12,16 @@ Authors: [Weipeng Xu](https://github.com/xwpken), [Ziyuan Xie](https://github.co
 
 For any questions, please contact the team at [wxuby@connect.ust.hk](mailto:wxuby@connect.ust.hk)
 
+## Demo video
+
+A short demo video is available by clicking the image below.
+
+<p align="center">
+  <a href="https://www.youtube.com/watch?v=jEtrD8aqPr4">
+    <img src="figs/ytb.png" alt="Watch the OpenSees-SHM-Tesseract demo video on YouTube" width="900">
+  </a>
+</p>
+
 ## Table of contents
 - [Introduction](#introduction)
 - [Modeling framework](#modeling-framework)
